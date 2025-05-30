@@ -1,0 +1,27 @@
+<nav class="teal lighten-1">
+  <div class="nav-wrapper">
+    <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+    
+    <% if (user) { %>
+      <div class="right">
+        <!-- <div class="input-field">
+          <input id="search-input" class="center-align" type="search" placeholder="Search by category...">
+          <label class="label-icon" for="search-input"><i class="material-icons">search</i></label>
+        </div> -->
+      </div>
+    <% } %>
+  </div>
+</nav>
+
+<ul class="sidenav" id="mobile-nav">
+  <li><a href="/home"><i class="material-icons left">home</i>Home</a></li>
+  <% if (!user) { %>
+    <li><a href="/login"><i class="material-icons left">login</i>Login</a></li>
+    <li><a href="/register"><i class="material-icons left">person_add</i>Register</a></li>
+  <% } else { %>
+    <li><a href="/dashboard"><i class="material-icons left">dashboard</i>Dashboard</a></li>
+    <li><a href="/view-income"><i class="material-icons left">trending_up</i>Income</a></li>
+    <li><a href="/view-expense"><i class="material-icons left">trending_down</i>Expenses</a></li>
+    <li><a href="/logout"><i class="material-icons left">exit_to_app</i>Logout</a></li>
+  <% } %>
+</ul>
