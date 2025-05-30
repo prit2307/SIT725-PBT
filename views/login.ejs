@@ -1,0 +1,31 @@
+<div class="auth-container">
+  <h2 class="auth-title">Login to Your Account</h2>
+  
+  <form action="/login" method="POST">
+    <div class="row">
+      <div class="input-field col s12">
+        <i class="material-icons prefix">person</i>
+        <input id="username" type="text" name="username" class="validate" required>
+        <label for="username">Username</label>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="input-field col s12">
+        <i class="material-icons prefix">lock</i>
+        <input id="password" type="password" name="password" class="validate" required>
+        <label for="password">Password</label>
+      </div>
+    </div>
+    
+    <div class="row center">
+      <button class="btn waves-effect waves-light" type="submit">
+        Login
+        <i class="material-icons right">send</i>
+      </button>
+    </div>
+  </form>
+  
+  <a href="/register" class="auth-link">Don't have an account? Register here</a>
+  <a href="/forgot-password" class="auth-link">Forgot password?</a>
+</div>
