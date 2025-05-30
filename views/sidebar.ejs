@@ -1,0 +1,79 @@
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h4>Budget Tracker</h4>
+  </div>
+  
+  <ul class="sidebar-menu">
+    <li>
+      <a href="/home">
+        <i class="material-icons">home</i>
+        <span>Home</span>
+      </a>
+    </li>
+    
+    <% if (user) { %>
+      <li>
+        <a href="/dashboard">
+          <i class="material-icons">dashboard</i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="/view-income">
+          <i class="material-icons">trending_up</i>
+          <span>Income</span>
+        </a>
+      </li>
+      <li>
+        <a href="/view-expense">
+          <i class="material-icons">trending_down</i>
+          <span>Expenses</span>
+        </a>
+      </li>
+      <li>
+        <a href="/goals">
+          <i class="material-icons">flag</i>
+          <span>Goals</span>
+        </a>
+      </li>
+      <li>
+        <a href="/reports">
+          <i class="material-icons">bar_chart</i>
+          <span>Reports</span>
+        </a>
+      </li>
+      <li>
+        <a href="/settings">
+          <i class="material-icons">settings</i>
+          <span>Settings</span>
+        </a>
+      </li>
+      <li>
+        <a href="/logout">
+          <i class="material-icons">exit_to_app</i>
+          <span>Logout</span>
+        </a>
+      </li>
+    <% } else { %>
+      <li>
+        <a href="/login">
+          <i class="material-icons">login</i>
+          <span>Login</span>
+        </a>
+      </li>
+      <li>
+        <a href="/register">
+          <i class="material-icons">person_add</i>
+          <span>Register</span>
+        </a>
+      </li>
+    <% } %>
+  </ul>
+</div>
+
+<!-- Sidebar toggle button for mobile -->
+<div class="sidebar-toggle">
+  <a class="btn-floating btn-large waves-effect waves-light teal">
+    <i class="material-icons">menu</i>
+  </a>
+</div>
