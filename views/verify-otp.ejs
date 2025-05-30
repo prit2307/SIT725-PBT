@@ -1,0 +1,30 @@
+<div class="auth-container">
+  <h2 class="auth-title">Verify OTP</h2>
+  
+  <form action="/verify-otp" method="POST">
+    <div class="row">
+      <div class="input-field col s12">
+        <i class="material-icons prefix">dialpad</i>
+        <input id="otp" type="text" name="otp" class="validate" required>
+        <label for="otp">Enter OTP</label>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="input-field col s12">
+        <i class="material-icons prefix">lock</i>
+        <input id="newPassword" type="password" name="newPassword" class="validate" required>
+        <label for="newPassword">New Password</label>
+      </div>
+    </div>
+    
+    <div class="row center">
+      <button class="btn waves-effect waves-light" type="submit">
+        Reset Password
+        <i class="material-icons right">check</i>
+      </button>
+    </div>
+  </form>
+  
+  <a href="/login" class="auth-link">Go back to Login</a>
+</div>
