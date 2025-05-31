@@ -1,0 +1,47 @@
+<div class="row">
+  <div class="col s12">
+    <h3>Edit Goal</h3>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="card-panel red lighten-2 white-text"><%= error %></div>
+<% } %>
+
+<form action="/goals/edit/<%= goal._id %>" method="POST">
+  <div class="row">
+    <div class="input-field col s12 m4">
+      <select name="type" required>
+        <option value="" disabled>Select Type</option>
+        <option value="income" <%= goal.type === 'income' ? 'selected' : '' %>>Income</option>
+        <option value="expense" <%= goal.type === 'expense' ? 'selected' : '' %>>Expense</option>
+      </select>
+      <label>Type</label>
+    </div>
+
+    <div class="input-field col s12 m4">
+      <input type="number" name="amount" step="0.01" required value="<%= goal.amount %>">
+      <label class="active">Goal Amount</label>
+    </div>
+
+    <div class="input-field col s12 m4">
+      <select name="period" required>
+        <option value="" disabled>Select Period</option>
+        <option value="daily" <%= goal.period === 'daily' ? 'selected' : '' %>>Daily</option>
+        <option value="weekly" <%= goal.period === 'weekly' ? 'selected' : '' %>>Weekly</option>
+        <option value="monthly" <%= goal.period === 'monthly' ? 'selected' : '' %>>Monthly</option>
+        <option value="yearly" <%= goal.period === 'yearly' ? 'selected' : '' %>>Yearly</option>
+      </select>
+      <label>Period</label>
+    </div>
+  </div>
+
+  <button class="btn waves-effect waves-light" type="submit">Update Goal</button>
+  <a href="/goals" class="btn grey">Cancel</a>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    M.FormSelect.init(document.querySelectorAll('select'));
+  });
+</script>
