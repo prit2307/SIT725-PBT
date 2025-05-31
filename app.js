@@ -14,6 +14,7 @@ const dashboardRoutes = require('./SIT725-PBT/models/routes/dashboard.routes');
 const app = express();
 
 
+
 // Connect to MongoDB
 mongoose.connect('mongodb+srv://jigishpatel30:BrArWEstq6FaE9j6@cluster0.6jxvjzr.mongodb.net/', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Connected to MongoDB'))
