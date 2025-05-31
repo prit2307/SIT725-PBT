@@ -214,6 +214,7 @@ function getPeriodRange(period) {
   }
   return { start, end };
 }
+ 
 
 // Add Income Route with Goal Check
 router.post('/add-income', async (req, res) => {
