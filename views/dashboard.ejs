@@ -1,0 +1,681 @@
+<div class="row">
+  <div class="col s12">
+    <h3 class="page-title">Dashboard Overview</h3>
+  </div>
+</div>
+
+<!-- Time Filter -->
+<div class="row">
+  <div class="col s12">
+    <div class="time-filter">
+      <button class="btn waves-effect waves-light time-filter-btn active" data-period="month">Monthly</button>
+      <button class="btn waves-effect waves-light time-filter-btn" data-period="quarter">Quarterly</button>
+      <button class="btn waves-effect waves-light time-filter-btn" data-period="year">Yearly</button>
+      <button class="btn waves-effect waves-light time-filter-btn" data-period="all">All Time</button>
+    </div>
+  </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row">
+  <div class="col s12 m4">
+    <div class="summary-item income">
+      <h5>Total Income</h5>
+      <p id="total-income">$0.00</p>
+    </div>
+  </div>
+  <div class="col s12 m4">
+    <div class="summary-item expense">
+      <h5>Total Expenses</h5>
+      <p id="total-expense">$0.00</p>
+    </div>
+  </div>
+  <div class="col s12 m4">
+    <div class="summary-item balance">
+      <h5>Balance</h5>
+      <p id="total-balance">$0.00</p>
+    </div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="row">
+  <!-- Income vs Expense Trend -->
+  <div class="col s12 l6">
+    <div class="dashboard-card">
+      <h4>Income vs Expense Trend</h4>
+      <div id="trend-chart-container" class="chart-container">
+        <canvas id="trendChart"></canvas>
+        <div id="trend-chart-empty" class="empty-chart-message" style="display: none;">
+          <i class="material-icons">timeline</i>
+          <p>No trend data available for the selected period</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Balance Trend -->
+  <div class="col s12 l6">
+    <div class="dashboard-card">
+      <h4>Balance Trend</h4>
+      <div id="balance-chart-container" class="chart-container">
+        <canvas id="balanceChart"></canvas>
+        <div id="balance-chart-empty" class="empty-chart-message" style="display: none;">
+          <i class="material-icons">account_balance</i>
+          <p>No balance data available for the selected period</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Income Categories -->
+  <div class="col s12 m6">
+    <div class="dashboard-card">
+      <h4>Income by Category</h4>
+      <div id="income-chart-container" class="chart-container">
+        <canvas id="incomePieChart"></canvas>
+        <div id="income-chart-empty" class="empty-chart-message" style="display: none;">
+          <i class="material-icons">pie_chart</i>
+          <p>No income categories available for the selected period</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Expense Categories -->
+  <div class="col s12 m6">
+    <div class="dashboard-card">
+      <h4>Expenses by Category</h4>
+      <div id="expense-chart-container" class="chart-container">
+        <canvas id="expensePieChart"></canvas>
+        <div id="expense-chart-empty" class="empty-chart-message" style="display: none;">
+          <i class="material-icons">pie_chart</i>
+          <p>No expense categories available for the selected period</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Goals Progress -->
+<!-- <div class="row">
+  <div class="col s12">
+    <div class="dashboard-card">
+      <h4>Goals Progress</h4>
+      <div id="goals-chart-container" class="chart-container">
+        <canvas id="goalsChart"></canvas>
+        <div id="goals-chart-empty" class="empty-chart-message" style="display: none;">
+          <i class="material-icons">flag</i>
+          <p>No goals have been set yet</p>
+          <a href="/goals" class="btn waves-effect waves-light">
+            <i class="material-icons left">add</i>Set Goals
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+<script>
+// Chart instances management
+const chartInstances = {
+  trendChart: null,
+  balanceChart: null,
+  incomePieChart: null,
+  expensePieChart: null,
+  goalsChart: null
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize with monthly data
+  loadDashboardData('month');
+  
+  // Time filter buttons
+  const timeFilterBtns = document.querySelectorAll('.time-filter-btn');
+  timeFilterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      // Remove active class from all buttons
+      timeFilterBtns.forEach(b => b.classList.remove('active'));
+      // Add active class to clicked button
+      this.classList.add('active');
+      
+      // Update charts based on selected period
+      const period = this.getAttribute('data-period');
+      loadDashboardData(period);
+    });
+  });
+});
+
+async function loadDashboardData(period) {
+  try {
+    showLoadingState();
+    
+    // Reset all charts first
+    Object.keys(chartInstances).forEach(key => {
+      if (chartInstances[key]) {
+        chartInstances[key].destroy();
+        chartInstances[key] = null;
+      }
+    });
+    
+    // Fetch data
+    const [trendData, balanceData, incomeCategories, expenseCategories, goalsProgress] = 
+      await Promise.all([
+        fetchWithFallback(`/api/trend-data?period=${period}`),
+        fetchWithFallback(`/api/balance-data?period=${period}`),
+        fetchWithFallback(`/api/income-categories?period=${period}`),
+        fetchWithFallback(`/api/expense-categories?period=${period}`),
+        fetchWithFallback('/api/goals-progress')
+      ]);
+    
+    // Update charts
+    updateSummaryCards(trendData);
+    updateTrendChart(trendData);
+    updateBalanceChart(balanceData);
+    updateIncomePieChart(incomeCategories);
+    updateExpensePieChart(expenseCategories);
+    updateGoalsChart(goalsProgress);
+    
+  } catch (error) {
+    console.error('Error loading dashboard data:', error);
+    showErrorState();
+  }
+}
+
+// Helper function to fetch with fallback data if API fails
+async function fetchWithFallback(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.warn(`Failed to fetch from ${url}:`, error);
+    // Return fallback empty data structure
+    if (url.includes('trend-data')) {
+      return { labels: [], incomeData: [], expenseData: [] };
+    } else if (url.includes('balance-data')) {
+      return { labels: [], balanceData: [] };
+    } else if (url.includes('income-categories')) {
+      return { labels: [], amounts: [] };
+    } else if (url.includes('expense-categories')) {
+      return { labels: [], amounts: [] };
+    } else if (url.includes('goals-progress')) {
+      return { labels: [], currentValues: [], targetValues: [] };
+    }
+    return {};
+  }
+}
+
+function showLoadingState() {
+  document.getElementById('total-income').textContent = 'Loading...';
+  document.getElementById('total-expense').textContent = 'Loading...';
+  document.getElementById('total-balance').textContent = 'Loading...';
+}
+
+function showErrorState() {
+  document.getElementById('total-income').textContent = '$0.00';
+  document.getElementById('total-expense').textContent = '$0.00';
+  document.getElementById('total-balance').textContent = '$0.00';
+  
+  // Show error messages in chart containers
+  document.querySelectorAll('.empty-chart-message').forEach(el => {
+    el.style.display = 'flex';
+  });
+  
+  document.querySelectorAll('canvas').forEach(canvas => {
+    canvas.style.display = 'none';
+  });
+}
+
+function updateSummaryCards(trendData) {
+  // Calculate totals
+  const totalIncome = Array.isArray(trendData.incomeData) 
+    ? trendData.incomeData.reduce((sum, amount) => sum + (amount || 0), 0)
+    : 0;
+    
+  const totalExpense = Array.isArray(trendData.expenseData)
+    ? trendData.expenseData.reduce((sum, amount) => sum + (amount || 0), 0)
+    : 0;
+    
+  const balance = totalIncome - totalExpense;
+  
+  // Format as currency
+  const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2
+  });
+  
+  // Update the DOM
+  document.getElementById('total-income').textContent = formatter.format(totalIncome);
+  document.getElementById('total-expense').textContent = formatter.format(totalExpense);
+  document.getElementById('total-balance').textContent = formatter.format(balance);
+}
+
+function updateTrendChart(data) {
+  const canvas = document.getElementById('trendChart');
+  const emptyMessage = document.getElementById('trend-chart-empty');
+  
+  // Check data
+  const hasData = data.labels && data.labels.length > 0 && 
+                 data.incomeData && data.expenseData;
+  
+  if (!hasData) {
+    canvas.style.display = 'none';
+    emptyMessage.style.display = 'flex';
+    return;
+  }
+  
+  canvas.style.display = 'block';
+  emptyMessage.style.display = 'none';
+  
+  const ctx = canvas.getContext('2d');
+  
+  // Destroy existing chart if it exists
+  if (chartInstances.trendChart) {
+    chartInstances.trendChart.destroy();
+  }
+  
+  // Create new chart
+  chartInstances.trendChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [
+        {
+          label: 'Income',
+          data: data.incomeData,
+          borderColor: '#4caf50',
+          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+          fill: true,
+          tension: 0.4
+        },
+        {
+          label: 'Expenses',
+          data: data.expenseData,
+          borderColor: '#f44336',
+          backgroundColor: 'rgba(244, 67, 54, 0.1)',
+          fill: true,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed.y !== null) {
+                label += new Intl.NumberFormat('en-US', { 
+                  style: 'currency', 
+                  currency: 'USD' 
+                }).format(context.parsed.y);
+              }
+              return label;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return '$' + value;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function updateBalanceChart(data) {
+  const canvas = document.getElementById('balanceChart');
+  const emptyMessage = document.getElementById('balance-chart-empty');
+  
+  // Check data
+  const hasData = data.labels && data.labels.length > 0 && data.balanceData;
+  
+  if (!hasData) {
+    canvas.style.display = 'none';
+    emptyMessage.style.display = 'flex';
+    return;
+  }
+  
+  canvas.style.display = 'block';
+  emptyMessage.style.display = 'none';
+  
+  const ctx = canvas.getContext('2d');
+  
+  // Destroy existing chart
+  if (chartInstances.balanceChart) {
+    chartInstances.balanceChart.destroy();
+  }
+  
+  // Create new chart
+  chartInstances.balanceChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        label: 'Balance',
+        data: data.balanceData,
+        backgroundColor: function(context) {
+          const value = context.dataset.data[context.dataIndex];
+          return value >= 0 ? 'rgba(33, 150, 243, 0.7)' : 'rgba(255, 152, 0, 0.7)';
+        },
+        borderColor: function(context) {
+          const value = context.dataset.data[context.dataIndex];
+          return value >= 0 ? 'rgb(33, 150, 243)' : 'rgb(255, 152, 0)';
+        },
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed.y !== null) {
+                label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+              }
+              return label;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return '$' + value;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function updateIncomePieChart(data) {
+  const canvas = document.getElementById('incomePieChart');
+  const emptyMessage = document.getElementById('income-chart-empty');
+  
+  // Check if we have valid data
+  const hasData = data.labels && data.labels.length > 0 && 
+                 data.amounts && data.amounts.some(amount => amount > 0);
+  
+  if (!hasData) {
+    canvas.style.display = 'none';
+    emptyMessage.style.display = 'flex';
+    return;
+  }
+  
+  canvas.style.display = 'block';
+  emptyMessage.style.display = 'none';
+  
+  const ctx = canvas.getContext('2d');
+  
+  // Process data
+  const labels = data.labels || [];
+  const amounts = data.amounts || [];
+  
+  // Filter out empty labels
+  const filteredLabels = [];
+  const filteredAmounts = [];
+  
+  labels.forEach((label, index) => {
+    if (label && amounts[index] > 0) {
+      filteredLabels.push(label);
+      filteredAmounts.push(amounts[index] || 0);
+    }
+  });
+  
+  // Generate colors
+  const backgroundColors = generateColors(filteredLabels.length, true);
+  const borderColors = generateColors(filteredLabels.length, false);
+  
+  // Destroy existing chart if it exists
+  if (chartInstances.incomePieChart) {
+    chartInstances.incomePieChart.destroy();
+  }
+  
+  // Create new chart
+  chartInstances.incomePieChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: filteredLabels,
+      datasets: [{
+        data: filteredAmounts,
+        backgroundColor: backgroundColors,
+        borderColor: borderColors,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.parsed || 0;
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = Math.round((value / total) * 100);
+              return `${label}: ${percentage}% (${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)})`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function updateExpensePieChart(data) {
+  const canvas = document.getElementById('expensePieChart');
+  const emptyMessage = document.getElementById('expense-chart-empty');
+  
+  // Check if we have valid data
+  const hasData = data.labels && data.labels.length > 0 && 
+                 data.amounts && data.amounts.some(amount => amount > 0);
+  
+  if (!hasData) {
+    canvas.style.display = 'none';
+    emptyMessage.style.display = 'flex';
+    return;
+  }
+  
+  canvas.style.display = 'block';
+  emptyMessage.style.display = 'none';
+  
+  const ctx = canvas.getContext('2d');
+  
+  // Process data
+  const labels = data.labels || [];
+  const amounts = data.amounts || [];
+  
+  // Filter out empty labels
+  const filteredLabels = [];
+  const filteredAmounts = [];
+  
+  labels.forEach((label, index) => {
+    if (label && amounts[index] > 0) {
+      filteredLabels.push(label);
+      filteredAmounts.push(amounts[index] || 0);
+    }
+  });
+  
+  // Generate colors - use a different hue for expenses
+  const backgroundColors = generateColors(filteredLabels.length, true, 0);
+  const borderColors = generateColors(filteredLabels.length, false, 0);
+  
+  // Destroy existing chart if it exists
+  if (chartInstances.expensePieChart) {
+    chartInstances.expensePieChart.destroy();
+  }
+  
+  // Create new chart
+  chartInstances.expensePieChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: filteredLabels,
+      datasets: [{
+        data: filteredAmounts,
+        backgroundColor: backgroundColors,
+        borderColor: borderColors,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.parsed || 0;
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = Math.round((value / total) * 100);
+              return `${label}: ${percentage}% (${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)})`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function updateGoalsChart(data) {
+  const canvas = document.getElementById('goalsChart');
+  const emptyMessage = document.getElementById('goals-chart-empty');
+  
+  // Check if we have valid non-zero data
+  const hasData = data.labels && data.labels.length > 0 && 
+                 data.currentValues.some(val => val > 0) || 
+                 data.targetValues.some(val => val > 0);
+  
+  if (!hasData) {
+    canvas.style.display = 'none';
+    emptyMessage.style.display = 'flex';
+    return;
+  }
+  
+  canvas.style.display = 'block';
+  emptyMessage.style.display = 'none';
+  
+  const ctx = canvas.getContext('2d');
+  
+  // Destroy existing chart if it exists
+  if (chartInstances.goalsChart) {
+    chartInstances.goalsChart.destroy();
+  }
+  
+  // Create new chart
+  chartInstances.goalsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        label: 'Current',
+        data: data.currentValues,
+        backgroundColor: 'rgba(38, 166, 154, 0.7)',
+        borderColor: 'rgb(38, 166, 154)',
+        borderWidth: 1
+      }, {
+        label: 'Target',
+        data: data.targetValues,
+        backgroundColor: 'rgba(158, 158, 158, 0.7)',
+        borderColor: 'rgb(158, 158, 158)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed.y !== null) {
+                label += new Intl.NumberFormat('en-US', { 
+                  style: 'currency', 
+                  currency: 'USD' 
+                }).format(context.parsed.y);
+              }
+              return label;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return '$' + value;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// Helper function to generate colors
+function generateColors(count, isBackground, hueOffset = 120) {
+  const colors = [];
+  const alpha = isBackground ? 0.7 : 1;
+  
+  for (let i = 0; i < count; i++) {
+    const hue = (i * 137.5 + hueOffset) % 360;
+    const saturation = 70;
+    const lightness = 50;
+    
+    if (isBackground) {
+      colors.push(`hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`);
+    } else {
+      colors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+    }
+  }
+  
+  return colors;
+}
+</script>
