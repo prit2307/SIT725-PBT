@@ -532,10 +532,3 @@ nav .input-field input:focus {
   }
 }
 
-.card-content.white-text h4.white-text {
-  color: white !important;
-}
-
-.card-content.white-text .card-title {
-  color: white !important;
-}
