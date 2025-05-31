@@ -1,0 +1,281 @@
+<div class="row">
+  <div class="col s12">
+    <h3 class="page-title">Expense Management</h3>
+  </div>
+</div>
+
+<!-- Filter Section -->
+<div class="row">
+  <div class="col s12 filter-section">
+    <div class="row mb-0">
+      <div class="input-field col s12 m4">
+        <i class="material-icons prefix">search</i>
+        <input id="table-filter" type="text" placeholder="Filter expenses...">
+      </div>
+      
+      <div class="input-field col s12 m4">
+        <i class="material-icons prefix">date_range</i>
+        <input id="start-date" type="text" class="datepicker" placeholder="Start date">
+      </div>
+      
+      <div class="input-field col s12 m4">
+        <i class="material-icons prefix">date_range</i>
+        <input id="end-date" type="text" class="datepicker" placeholder="End date">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Expense Button -->
+<div class="row">
+  <div class="col s12">
+    <a class="btn waves-effect waves-light modal-trigger" href="#add-expense-modal">
+      <i class="material-icons left">add</i>Add Expense
+    </a>
+    
+    <div class="right-align" style="display: inline-block; margin-left: 15px;">
+      <a href="/api/download-expense-format" class="btn waves-effect waves-light">
+        <i class="material-icons left">file_download</i>Download CSV Template
+      </a>
+      
+      <a class="btn waves-effect waves-light modal-trigger" href="#upload-csv-modal">
+        <i class="material-icons left">file_upload</i>Upload CSV
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Expense Table -->
+<div class="row">
+  <div class="col s12">
+    <div class="data-table">
+      <table class="striped responsive-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Recurring</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% expense.forEach(function(exp) { %>
+            <tr>
+              <td><%= exp.category %></td>
+              <td>$<%= exp.amount.toFixed(2) %></td>
+              <td><%= new Date(exp.date).toISOString().split('T')[0] %></td>
+              <td><%= exp.recurring ? 'Yes' : 'No' %></td>
+              <td class="action-icons">
+                <a href="#" class="edit-expense" data-id="<%= exp._id %>" 
+                   data-category="<%= exp.category %>" 
+                   data-amount="<%= exp.amount %>" 
+                   data-date="<%= new Date(exp.date).toISOString().split('T')[0] %>"
+                   data-recurring="<%= exp.recurring ? 'true' : 'false' %>">
+                  <i class="material-icons">edit</i>
+                </a>
+                <a href="#delete-modal" class="modal-trigger delete-expense" data-id="<%= exp._id %>">
+                  <i class="material-icons">delete</i>
+                </a>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Expense Modal -->
+<div id="add-expense-modal" class="modal">
+  <div class="modal-content">
+    <h4 class="modal-title">Add New Expense</h4>
+    <form action="/add-expense" method="POST">
+      <div class="row">
+        <div class="input-field col s12">
+          <i class="material-icons prefix">category</i>
+          <input id="category" type="text" name="category" class="validate" required>
+          <label for="category">Category</label>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="input-field col s12">
+          <i class="material-icons prefix">attach_money</i>
+          <input id="amount" type="number" step="0.01" name="amount" class="validate" required>
+          <label for="amount">Amount</label>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="input-field col s12">
+          <i class="material-icons prefix">date_range</i>
+          <input id="date" type="text" class="datepicker" name="date" required>
+          <label for="date">Date</label>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col s12">
+          <label>
+            <input type="checkbox" name="recurring" value="on" />
+            <span>Recurring</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <a href="#!" class="modal-close waves-effect waves-light btn-flat">Cancel</a>
+        <button type="submit" class="waves-effect waves-light btn">
+          <i class="material-icons left">save</i>Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Expense Modal -->
+<div id="edit-expense-modal" class="modal">
+  <div class="modal-content">
+    <h4 class="modal-title">Edit Expense</h4>
+    <form id="edit-expense-form" action="/update-expense/" method="POST">
+      <div class="row">
+        <div class="input-field col s12">
+          <i class="material-icons prefix">category</i>
+          <input id="edit-category" type="text" name="category" class="validate" required>
+          <label for="edit-category">Category</label>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="input-field col s12">
+          <i class="material-icons prefix">attach_money</i>
+          <input id="edit-amount" type="number" step="0.01" name="amount" class="validate" required>
+          <label for="edit-amount">Amount</label>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="input-field col s12">
+          <i class="material-icons prefix">date_range</i>
+          <input id="edit-date" type="text" class="datepicker" name="date" required>
+          <label for="edit-date">Date</label>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col s12">
+          <label>
+            <input type="checkbox" id="edit-recurring" name="recurring" value="on" />
+            <span>Recurring</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <a href="#!" class="modal-close waves-effect waves-light btn-flat">Cancel</a>
+        <button type="submit" class="waves-effect waves-light btn">
+          <i class="material-icons left">save</i>Update
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="modal">
+  <div class="modal-content">
+    <h4 class="modal-title">Confirm Delete</h4>
+    <p>Are you sure you want to delete this expense?</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" class="modal-close waves-effect waves-light btn-flat">Cancel</a>
+    <a id="confirm-delete" href="#" class="waves-effect waves-light btn red">
+      <i class="material-icons left">delete</i>Delete
+    </a>
+  </div>
+</div>
+
+<!-- Upload CSV Modal -->
+<div id="upload-csv-modal" class="modal">
+  <div class="modal-content">
+    <h4 class="modal-title">Upload Expenses CSV</h4>
+    <form action="/api/upload-expenses" method="POST" enctype="multipart/form-data">
+      <div class="row">
+        <div class="file-field input-field">
+          <div class="btn">
+            <span>File</span>
+            <input type="file" name="csvFile" accept=".csv" required>
+          </div>
+          <div class="file-path-wrapper">
+            <input class="file-path validate" type="text" placeholder="Upload expenses CSV file">
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <a href="#!" class="modal-close waves-effect waves-light btn-flat">Cancel</a>
+        <button type="submit" class="waves-effect waves-light btn">
+          <i class="material-icons left">cloud_upload</i>Upload
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize date pickers
+    const dateElems = document.querySelectorAll('.datepicker');
+    const dateInstances = M.Datepicker.init(dateElems, {
+      format: 'yyyy-mm-dd',
+      autoClose: true,
+      defaultDate: new Date(),
+      setDefaultDate: true
+    });
+    
+    // Handle edit expense
+    const editButtons = document.querySelectorAll('.edit-expense');
+    const editForm = document.getElementById('edit-expense-form');
+    
+    editButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const id = this.getAttribute('data-id');
+        const category = this.getAttribute('data-category');
+        const amount = this.getAttribute('data-amount');
+        const date = this.getAttribute('data-date');
+        const recurring = this.getAttribute('data-recurring') === 'true';
+        
+        // Update form action
+        editForm.action = `/update-expense/${id}`;
+        
+        // Set form values
+        document.getElementById('edit-category').value = category;
+        document.getElementById('edit-amount').value = amount;
+        document.getElementById('edit-date').value = date;
+        document.getElementById('edit-recurring').checked = recurring;
+        
+        // Update labels to active state
+        M.updateTextFields();
+        
+        // Open modal
+        const modal = document.getElementById('edit-expense-modal');
+        const instance = M.Modal.getInstance(modal);
+        instance.open();
+      });
+    });
+    
+    // Handle delete expense
+    const deleteButtons = document.querySelectorAll('.delete-expense');
+    const confirmDeleteButton = document.getElementById('confirm-delete');
+    
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        confirmDeleteButton.href = `/delete-expense/${id}`;
+      });
+    });
+  });
+</script>
