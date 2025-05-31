@@ -1,0 +1,36 @@
+<div class="auth-container">
+  <h2 class="auth-title">Add Income</h2>
+  <% if (message) { %>
+  <div class="card-panel green lighten-4 green-text text-darken-4">
+    <%= message %>
+  </div>
+<% } %>
+  <form action="/add-income" method="POST">
+    <div class="row">
+      <div class="input-field col s12">
+        <input type="number" name="amount" class="validate" required>
+        <label for="amount">Amount</label>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="input-field col s12">
+        <input type="text" name="category" class="validate" required>
+        <label for="category">Category</label>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="input-field col s12">
+        <input type="date" name="date" class="validate" required>
+        <label for="date">Date</label>
+      </div>
+    </div>
+    
+    <div class="row center">
+      <button class="btn waves-effect waves-light" type="submit">Add Income</button>
+    </div>
+  </form>
+  
+  <a href="/view-income" class="auth-link">View Income</a>
+</div>
