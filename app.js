@@ -28,6 +28,7 @@ app.use(expressLayouts);
 // Middleware
 app.use(express.static('public')); // Serve static files
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded data
+app.use(express.json());
 
 // Session Setup
 app.use(session({
@@ -54,10 +55,14 @@ app.use(async (req, res, next) => {
 });
 
 // Routes
-app.use(authRoutes);
-app.use(goalRoutes);
-app.use(reportRoutes);
-app.use(dashboardRoutes);
+app.use('/', authRoutes);    // Auth routes: /login, /register, forgot-password, reset-password
+app.use('/', userRoutes);    // User settings/profile routes
+app.use('/', incomeRoutes);  // Income-related routes
+app.use('/', expenseRoutes); // Expense-related routes
+app.use('/', require('./routes/goal.routes')); // Goal-related routes
+app.use('/', require('./routes/report.routes')); // Analytics-related routes
+app.use('/', require('./routes/dashboard.routes')); // Notification-related routes
+
 // Home route
 app.get('/home', async (req, res) => {
     if (req.session.userId) {
