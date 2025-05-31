@@ -1,0 +1,23 @@
+<div class="warning-card">
+  <h4>Expense Limit Warning</h4>
+  
+  <i class="material-icons warning-icon">warning</i>
+  
+  <p class="flow-text">You are trying to add an expense of <strong>$<%= amount %></strong>, but your goal has only <strong>$<%= amountLeft %></strong> left for this period.</p>
+  
+  <p>Do you want to proceed anyway?</p>
+
+  <form action="/confirm-expense" method="POST">
+    <input type="hidden" name="amount" value="<%= amount %>">
+    <input type="hidden" name="category" value="<%= category %>">
+    <input type="hidden" name="date" value="<%= date %>">
+    
+    <button class="btn red waves-effect waves-light" type="submit">
+      <i class="material-icons left">check</i>Yes, add expense
+    </button>
+    
+    <a href="/add-expense" class="btn grey waves-effect waves-light">
+      <i class="material-icons left">close</i>Cancel
+    </a>
+  </form>
+</div>
