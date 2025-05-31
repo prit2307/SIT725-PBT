@@ -1,0 +1,285 @@
+<div class="row">
+  <div class="col s12">
+    <h3 class="page-title">Financial Reports</h3>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col s12">
+    <div class="report-card">
+      <h4>Generate Financial Report</h4>
+      
+      <form action="/reports" method="POST">
+        <div class="row">
+          <div class="input-field col s12 m3">
+            <i class="material-icons prefix">date_range</i>
+            <input type="text" class="datepicker" name="startDate" id="startDate" required>
+            <label for="startDate">Start Date</label>
+          </div>
+          
+          <div class="input-field col s12 m3">
+            <i class="material-icons prefix">date_range</i>
+            <input type="text" class="datepicker" name="endDate" id="endDate" required>
+            <label for="endDate">End Date</label>
+          </div>
+
+          <div class="input-field col s12 m3">
+            <i class="material-icons prefix">category</i>
+            <select name="type" required>
+              <option value="" disabled selected>Report Content</option>
+              <option value="income">Income Only</option>
+              <option value="expense">Expenses Only</option>
+              <option value="both">Income & Expenses</option>
+            </select>
+            <label>Report Content</label>
+          </div>
+          
+          <div class="input-field col s12 m3">
+            <i class="material-icons prefix">description</i>
+            <select name="format" required>
+              <option value="csv" selected>CSV Format</option>
+              <option value="pdf">PDF Format</option>
+            </select>
+            <label>Report Format</label>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col s12 center-align">
+            <button class="btn-large waves-effect waves-light" type="submit">
+              <i class="material-icons left">file_download</i>Generate Report
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- <div class="row">
+  <div class="col s12">
+    <div class="report-card">
+      <h4>Monthly Summary</h4>
+      
+      <div class="row">
+        <div class="input-field col s12 m6">
+          <i class="material-icons prefix">date_range</i>
+          <input type="text" class="datepicker" id="summaryMonth" required>
+          <label for="summaryMonth">Select Month</label>
+        </div>
+        
+        <div class="col s12 m6 center-align" style="margin-top: 20px;">
+          <button class="btn waves-effect waves-light" id="generateSummary">
+            <i class="material-icons left">assessment</i>Generate Summary
+          </button>
+        </div>
+      </div>
+      
+      <div id="summaryResults" style="display: none;">
+        <div class="row">
+          <div class="col s12 m4">
+            <div class="card teal lighten-1">
+              <div class="card-content white-text">
+                <span class="card-title">Total Income</span>
+                <h4 id="summaryIncome" class="white-text">$0.00</h4>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col s12 m4">
+            <div class="card red lighten-1">
+              <div class="card-content white-text">
+                <span class="card-title">Total Expenses</span>
+                <h4 id="summaryExpenses" class="white-text">$0.00</h4>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col s12 m4">
+            <div class="card blue lighten-1">
+              <div class="card-content white-text">
+                <span class="card-title">Net Balance</span>
+                <h4 id="summaryBalance" class="white-text">$0.00</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col s12">
+            <div class="chart-container">
+              <canvas id="summaryChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize date pickers
+    const dateOptions = {
+      format: 'yyyy-mm-dd',
+      autoClose: true,
+      defaultDate: new Date(),
+      setDefaultDate: true
+    };
+    
+    M.Datepicker.init(document.getElementById('startDate'), dateOptions);
+    M.Datepicker.init(document.getElementById('endDate'), dateOptions);
+    
+    // Initialize selects
+    M.FormSelect.init(document.querySelectorAll('select'));
+    
+    // Initialize month picker with different format
+    const monthOptions = {
+      format: 'mmmm yyyy',
+      autoClose: true,
+      defaultDate: new Date(),
+      setDefaultDate: true
+    };
+    
+    M.Datepicker.init(document.getElementById('summaryMonth'), monthOptions);
+    
+    // Handle summary generation
+    const generateSummaryBtn = document.getElementById('generateSummary');
+    if (generateSummaryBtn) {
+      generateSummaryBtn.addEventListener('click', function() {
+        // Get selected month
+        const monthPicker = document.getElementById('summaryMonth');
+        const selectedDate = M.Datepicker.getInstance(monthPicker).date;
+        
+        if (!selectedDate) {
+          alert('Please select a month');
+          return;
+        }
+        
+        // Format date for API
+        const year = selectedDate.getFullYear();
+        const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+        const formattedDate = `${year}-${month}`;
+        
+        // In a real app, you would fetch data from the server
+        // For now, we'll use mock data
+        fetchMonthlySummary(formattedDate);
+      });
+    }
+  });
+  
+  async function fetchMonthlySummary(yearMonth) {
+    try {
+      // Show loading state
+      document.getElementById('summaryResults').style.display = 'block';
+      document.getElementById('summaryIncome').textContent = 'Loading...';
+      document.getElementById('summaryExpenses').textContent = 'Loading...';
+      document.getElementById('summaryBalance').textContent = 'Loading...';
+      
+      // In a real app, you would fetch this data from your server
+      // For demo purposes, we'll simulate a delay and use mock data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock data - in a real app, this would come from your API
+      const mockData = {
+        income: 3250.00,
+        expense: 2180.00,
+        balance: 1070.00,
+        weeklyData: {
+          labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+          income: [800, 950, 700, 800],
+          expense: [600, 500, 580, 500]
+        }
+      };
+      
+      // Format as currency
+      const formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+      });
+      
+      // Update summary cards
+      document.getElementById('summaryIncome').textContent = formatter.format(mockData.income);
+      document.getElementById('summaryExpenses').textContent = formatter.format(mockData.expense);
+      document.getElementById('summaryBalance').textContent = formatter.format(mockData.balance);
+      
+      // Generate chart
+      generateSummaryChart(mockData.weeklyData);
+    } catch (error) {
+      console.error('Error fetching monthly summary:', error);
+      alert('Failed to fetch monthly summary. Please try again.');
+    }
+  }
+  
+  function generateSummaryChart(data) {
+    const ctx = document.getElementById('summaryChart').getContext('2d');
+    
+    // Check if chart already exists and destroy it
+    if (window.summaryChart) {
+      window.summaryChart.destroy();
+    }
+    
+    window.summaryChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.labels,
+        datasets: [
+          {
+            label: 'Income',
+            data: data.income,
+            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+            borderColor: 'rgb(76, 175, 80)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'Expenses',
+            data: data.expense,
+            backgroundColor: 'rgba(244, 67, 54, 0.2)',
+            borderColor: 'rgb(244, 67, 54)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed.y !== null) {
+                  label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                }
+                return label;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return '$' + value;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+</script>
