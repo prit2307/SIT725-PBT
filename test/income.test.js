@@ -15,7 +15,7 @@ describe('Income Routes', function () {
 
   before(async function () {
     if (mongoose.connection.readyState !== 1) {
-      await mongoose.connect('mongodb+srv://pritboghra98787:WufgV1jhPHnW44bd@cluster0.pkbtp7p.mongodb.net/', {
+      await mongoose.connect('mongodb+srv://jigishpatel30:BrArWEstq6FaE9j6@cluster0.6jxvjzr.mongodb.net /', {
         useNewUrlParser: true,
         useUnifiedTopology: true,
       });
